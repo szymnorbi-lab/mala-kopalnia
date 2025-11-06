@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<title>🛢️ Mała Kopalnia Przemysłowa</title>
+<style>
+  body {
+    background: #1a1a1a;
+    color: #f5f5f5;
+    font-family: Arial, sans-serif;
+    text-align: center;
+    margin: 0;
+    padding: 20px;
+  }
+  .panel {
+    max-width: 500px;
+    margin: 40px auto;
+    background: #2c2c2c;
+    border-radius: 12px;
+    padding: 25px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.6);
+  }
+  input {
+    padding: 10px;
+    border: none;
+    border-radius: 8px;
+    width: 80%;
+    margin-bottom: 10px;
+  }
+  button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    background: #00b894;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    margin: 5px;
+  }
+  button:disabled {
+    background: #555;
+    cursor: not-allowed;
+  }
+  #status {
+    font-weight: bold;
+    color: #ff7675;
+  }
+  footer {
+    margin-top: 30px;
+    color: #999;
+    font-size: 14px;
+  }
+</style>
+</head>
+<body>
+  <div class="panel" id="rejestracja">
+    <h1>🛢️ Mała Kopalnia Przemysłowa</h1>
+    <h3>Rejestracja pracownika</h3>
+    <p>Podaj swoje imię i nazwisko (RP):</p>
+    <input type="text" id="playerName" placeholder="np. Jan Kowalski RP">
+    <br>
+    <button onclick="zapiszGracza()">Zapisz</button>
+  </div>
+
+  <div class="panel" id="panelSterowania" style="display:none;">
+    <h1>🛢️ Panel Sterowania</h1>
+    <p>Witaj, <strong id="pokazImie"></strong>!</p>
+    <p>Status: <span id="status">Zatrzymane</span></p>
+    <p>Wydobyto: <span id="litry">0</span> L</p>
+    <p>Stan magazynu: <span id="magazyn">10000</span> L</p>
+    <button id="startBtn" onclick="start()">▶️ Start</button>
+    <button id="stopBtn" onclick="stop()" disabled>⏹️ Stop</button>
+    <br><br>
+    <button onclick="wyloguj()" style="background:#e74c3c;">🚪 Wyloguj</button>
+  </div>
+
+  <footer>© 2025 Mała Kopalnia Przemysłowa RP</footer>
+
+<script>
+let wydobycieAktywne = false;
+let wydobyto = 0;
+let timer;
+
+window.onload = () => {
+  const imie = localStorage.getItem("gracz");
+  if (imie) {
+    pokazPanel(imie);
+  }
+};
+
+function zapiszGracza() {
+  const imie = document.getElementById("playerName").value.trim();
+  if (!imie) {
+    alert("Wpisz swoje imię RP!");
+    return;
+  }
+  localStorage.setItem("gracz", imie);
+  pokazPanel(imie);
+}
+
+function pokazPanel(imie) {
+  document.getElementById("rejestracja").style.display = "none";
+  document.getElementById("panelSterowania").style.display = "block";
+  document.getElementById("pokazImie").textContent = imie;
+}
+
+function start() {
+  wydobycieAktywne = true;
+  document.getElementById("status").textContent = "Wydobycie w toku...";
+  document.getElementById("status").style.color = "#00b894";
+  document.getElementById("startBtn").disabled = true;
+  document.getElementById("stopBtn").disabled = false;
+
+  timer = setInterval(() => {
+    wydobyto += 10;
+    document.getElementById("litry").textContent = wydobyto;
+    document.getElementById("magazyn").textContent = 10000 - wydobyto;
+
+    if (wydobyto >= 10000) {
+      stop();
+      document.getElementById("status").textContent = "Magazyn pełny!";
+      document.getElementById("status").style.color = "#f1c40f";
+      document.getElementById("startBtn").disabled = true;
+      document.getElementById("stopBtn").disabled = true;
+    }
+  }, 1000);
+}
+
+function stop() {
+  wydobycieAktywne = false;
+  clearInterval(timer);
+  document.getElementById("status").textContent = "Zatrzymane";
+  document.getElementById("status").style.color = "#ff7675";
+  document.getElementById("startBtn").disabled = false;
+  document.getElementById("stopBtn").disabled = true;
+}
+
+function wyloguj() {
+  localStorage.removeItem("gracz");
+  location.reload();
+}
+</script>
+</body>
+</html>
