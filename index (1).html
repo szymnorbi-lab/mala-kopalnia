@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Mała Kopalnia Przemysłowa — Panel</title>
+<style>
+  :root{
+    --bg:#f7f7f8;
+    --card:#ffffff;
+    --accent:#ffb703;
+    --accent-2:#219ebc;
+    --text:#0f1720;
+    --muted:#6b7280;
+    --success:#2a9d8f;
+    --danger:#e63946;
+    --glass: rgba(255,255,255,0.6);
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    font-family:Inter, "Segoe UI", Roboto, Arial, sans-serif;
+    background: linear-gradient(180deg,#f1f5f9 0%, #eef2f6 100%);
+    color:var(--text);
+  }
+  header{
+    background: linear-gradient(90deg,var(--accent),var(--accent-2));
+    color:white;
+    padding:18px 20px;
+    display:flex;
+    align-items:center;
+    gap:14px;
+    box-shadow: 0 6px 24px rgba(16,24,40,0.08);
+  }
+  header h1{font-size:20px;margin:0}
+  header p{margin:0;font-size:13px;opacity:0.95}
+  .container{max-width:980px;margin:26px auto;padding:0 16px;}
+  .grid{
+    display:grid;
+    grid-template-columns: 1fr 360px;
+    gap:18px;
+  }
+  .card{
+    background:var(--card);
+    border-radius:12px;
+    padding:16px;
+    box-shadow: 0 6px 18px rgba(16,24,40,0.04);
+  }
+  .card h2{margin:0 0 8px 0;font-size:16px;color:var(--text)}
+  .muted{color:var(--muted);font-size:13px}
+  input[type=text]{
+    width:100%;
+    padding:10px 12px;
+    border-radius:8px;
+    border:1px solid #e6e9ee;
+    background:transparent;
+    font-size:14px;
+    color:var(--text);
+    margin-bottom:10px;
+  }
+  .btn{
+    display:inline-block;
+    padding:10px 14px;
+    border-radius:10px;
+    border:none;
+    cursor:pointer;
+    font-weight:600;
+    font-size:14px;
+  }
+  .btn-primary{background:var(--accent-2);color:white}
+  .btn-ghost{background:transparent;border:1px solid #e6e9ee}
+  .controls{display:flex;gap:8px;flex-wrap:wrap}
+  .status-row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+  .status-box{padding:10px;border-radius:10px;background:linear-gradient(180deg,#fff,#fbfbfc);min-width:130px;text-align:center}
+  .big{font-size:20px;font-weight:700}
+  .small{font-size:13px;color:var(--muted)}
+  .green{color:var(--success);font-weight:700}
+  .red{color:var(--danger);font-weight:700}
+  .link{color:var(--accent-2);text-decoration:none;font-weight:600}
+  footer{max-width:980px;margin:28px auto;text-align:center;color:var(--muted);font-size:13px}
+  /* responsive */
+  @media (max-width:900px){
+    .grid{grid-template-columns:1fr; }
+    header{flex-direction:column;align-items:flex-start;gap:6px}
+  }
+  .note{font-size:13px;color:var(--muted);margin-top:8px}
+  .worker-id{background:#f3f7f9;padding:6px 10px;border-radius:8px;border:1px dashed #e6eef3;display:inline-block;font-weight:700}
+  .actions{margin-top:12px}
+  .danger{background:var(--danger);color:white}
+  .hidden{display:none}
+</style>
+</head>
+<body>
+<header>
+  <div style="font-size:22px">🛢️</div>
+  <div>
+    <h1>Mała Kopalnia Przemysłowa</h1>
+    <p>Panel pracownika — sterowanie wydobyciem RP</p>
+  </div>
+</header>
+
+<div class="container">
+  <div class="grid">
+    <!-- Left: main panel -->
+    <div class="card" id="card-main">
+      <div id="loginSection">
+        <h2>Logowanie / Rejestracja</h2>
+        <p class="muted">Wpisz swoje imię i nazwisko (RP). System wygeneruje Twój identyfikator pracowniczy.</p>
+        <input type="text" id="inputName" placeholder="np. Jan Kowalski RP" />
+        <div class="controls">
+          <button class="btn btn-primary" id="btnSave">Zapisz / Zaloguj</button>
+          <button class="btn btn-ghost" id="btnClear">Wyczyść lokalnie</button>
+          <a class="btn btn-ghost" id="btnRankingLink" href="ranking.html" target="_blank">Zobacz ranking pracowników</a>
+        </div>
+        <p class="note">Dane przechowywane są w przeglądarce (localStorage). Jeśli chcesz, aby ranking był widoczny dla wszystkich, potrzebny będzie serwer / Discord webhook.</p>
+      </div>
+
+      <div id="panelSection" class="hidden">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div>
+            <h2>Panel sterowania</h2>
+            <p class="muted">Witaj, <strong id="displayName"></strong> — ID: <span class="worker-id" id="displayId"></span></p>
+          </div>
+          <div style="text-align:right">
+            <div class="small">Stawka:</div>
+            <div class="big">6,50 PLN / L</div>
+          </div>
+        </div>
+
+        <div style="margin-top:12px" class="card">
+          <div class="status-row">
+            <div class="status-box">
+              <div class="small">Status</div>
+              <div id="statusText" class="small red">Zatrzymane</div>
+            </div>
+            <div class="status-box">
+              <div class="small">Wydobyto (sesja)</div>
+              <div id="sessionLiters" class="big">0 L</div>
+            </div>
+            <div class="status-box">
+              <div class="small">Łącznie (profil)</div>
+              <div id="totalLiters" class="big">0 L</div>
+            </div>
+            <div class="status-box">
+              <div class="small">Zarobek (profil)</div>
+              <div id="totalEarnings" class="big">0 PLN</div>
+            </div>
+          </div>
+
+          <div class="actions">
+            <button class="btn btn-primary" id="btnStart">▶️ Start</button>
+            <button class="btn" id="btnStop" disabled>⏸️ Pauza</button>
+            <button class="btn" id="btnEndShift">🧾 Zakończ zmianę</button>
+            <button class="btn danger" id="btnLogout">🚪 Wyloguj</button>
+          </div>
+
+          <p class="note">Kliknij "Zakończ zmianę" aby zapisać wyniki sesji do Twojego profilu i zaktualizować ranking.</p>
+        </div>
+      </div>
+
+      <div style="margin-top:12px" class="card">
+        <h2>Twoje ostatnie zmiany</h2>
+        <div id="historyList" class="muted small">Brak zapisanych zmian.</div>
+      </div>
+
+    </div>
+
+    <!-- Right: info / company -->
+    <div>
+      <div class="card">
+        <h2>Informacje o kopalni</h2>
+        <p class="muted">Automatyczne wydobycie: <strong>1000 L/h</strong> (ustawione jako wartość RP). Stawka bazowa: <strong>6,50 PLN / L (brutto)</strong>.</p>
+        <p class="muted">Regulamin i zasady znajdziesz na kanale Discord serwera.</p>
+        <hr/>
+        <h2>Magazyn</h2>
+        <p class="muted">Domyślny rozmiar magazynu: <strong>10000 L</strong>. Jeśli magazyn jest pełny, wydobycie nie będzie kontynuowane.</p>
+        <div style="margin-top:10px">
+          <div class="small">Stan magazynu (lokalnie):</div>
+          <div id="magLocal" class="big">10000 L</div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:12px">
+        <h2>Szefostwo</h2>
+        <p class="muted">Kierownictwo ma pełne prawa do zmian w systemie. Możesz zgłosić błędy przez Discord.</p>
+        <p class="muted">Przycisk do rankingu otworzy stronę z TOP 5.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>© 2025 Mała Kopalnia Przemysłowa — Panel RP</footer>
+
+<script>
+/*
+Simple local-Storage based worker system.
+Structure in localStorage:
+key: 'kopalnia_workers' -> JSON array of workers:
+{ id, name, totalLiters, totalEarnings, history: [{date, liters, earnings}] }
+key: 'kopalnia_current' -> { id } to track current logged in worker
+*/
+
+// constants
+const PRICE_PER_L = 6.5;
+const SESSION_INCREMENT_L_SEC = 10; // for demo: 10 L per second (adjust)
+const MAX_MAGAZYN = 10000;
+
+// helpers
+function loadWorkers(){
+  try {
+    return JSON.parse(localStorage.getItem('kopalnia_workers')||'[]');
+  } catch(e){ return []; }
+}
+function saveWorkers(arr){ localStorage.setItem('kopalnia_workers', JSON.stringify(arr)); }
+function getCurrent(){ try { return JSON.parse(localStorage.getItem('kopalnia_current')||'null'); } catch(e){ return null; } }
+function setCurrent(obj){ localStorage.setItem('kopalnia_current', JSON.stringify(obj)); }
+function clearCurrent(){ localStorage.removeItem('kopalnia_current'); }
+
+// UI elements
+const inputName = document.getElementById('inputName');
+const btnSave = document.getElementById('btnSave');
+const btnClear = document.getElementById('btnClear');
+const btnRankingLink = document.getElementById('btnRankingLink');
+
+const loginSection = document.getElementById('loginSection');
+const panelSection = document.getElementById('panelSection');
+
+const displayName = document.getElementById('displayName');
+const displayId = document.getElementById('displayId');
+
+const statusText = document.getElementById('statusText');
+const sessionLitersEl = document.getElementById('sessionLiters');
+const totalLitersEl = document.getElementById('totalLiters');
+const totalEarningsEl = document.getElementById('totalEarnings');
+
+const btnStart = document.getElementById('btnStart');
+const btnStop = document.getElementById('btnStop');
+const btnEndShift = document.getElementById('btnEndShift');
+const btnLogout = document.getElementById('btnLogout');
+
+const historyList = document.getElementById('historyList');
+const magLocal = document.getElementById('magLocal');
+
+let timer = null;
+let sessionLiters = 0;
+let workers = loadWorkers();
+let magState = MAX_MAGAZYN;
+
+// init
+function init(){
+  workers = loadWorkers();
+  const cur = getCurrent();
+  if(cur && cur.id){
+    const w = workers.find(x=>x.id===cur.id);
+    if(w){
+      showPanel(w);
+      return;
+    } else {
+      clearCurrent();
+    }
+  }
+  showLogin();
+  updateMag();
+}
+init();
+
+// UI actions
+btnSave.addEventListener('click', ()=>{
+  const name = inputName.value.trim();
+  if(!name){ alert('Wpisz swoje imię RP.'); return; }
+  // check if exists
+  let w = workers.find(x=>x.name.toLowerCase()===name.toLowerCase());
+  if(!w){
+    w = { id: 'KOP-'+Date.now().toString().slice(-6), name:name, totalLiters:0, totalEarnings:0, history:[] };
+    workers.push(w);
+    saveWorkers(workers);
+  }
+  setCurrent({id:w.id});
+  showPanel(w);
+});
+
+btnClear.addEventListener('click', ()=>{
+  if(confirm('Czy chcesz usunąć wszystkie dane lokalne (ranking, profile)?')) {
+    localStorage.removeItem('kopalnia_workers');
+    localStorage.removeItem('kopalnia_current');
+    location.reload();
+  }
+});
+
+btnStart.addEventListener('click', startExtraction);
+btnStop.addEventListener('click', pauseExtraction);
+btnEndShift.addEventListener('click', endShift);
+btnLogout.addEventListener('click', ()=>{
+  if(confirm('Wylogować się?')) {
+    clearCurrent();
+    location.reload();
+  }
+});
+
+// functions
+function showLogin(){
+  loginSection.style.display='block';
+  panelSection.classList.add('hidden');
+}
+function showPanel(worker){
+  loginSection.style.display='none';
+  panelSection.classList.remove('hidden');
+  displayName.textContent = worker.name;
+  displayId.textContent = worker.id;
+  sessionLiters = 0;
+  updateSessionUI();
+  updateProfileUI(worker);
+  renderHistory(worker);
+}
+
+function updateProfileUI(worker){
+  totalLitersEl.textContent = worker.totalLiters + ' L';
+  totalEarningsEl.textContent = worker.totalEarnings.toFixed(2) + ' PLN';
+}
+
+function updateSessionUI(){
+  sessionLitersEl.textContent = sessionLiters + ' L';
+}
+
+function startExtraction(){
+  const cur = getCurrent();
+  if(!cur){ alert('Brak zalogowanego pracownika.'); return; }
+  const w = workers.find(x=>x.id===cur.id);
+  if(!w){ alert('Profil nieznaleziony.'); return; }
+  if(magState<=0){ alert('Magazyn jest pusty!'); return; }
+  statusText.textContent='Wydobycie w toku...';
+  statusText.classList.remove('red'); statusText.classList.add('green');
+  btnStart.disabled = true;
+  btnStop.disabled = false;
+  // start timer
+  timer = setInterval(()=>{
+    // add liters per tick
+    const canTake = Math.min(SESSION_INCREMENT_L_SEC, magState);
+    sessionLiters += canTake;
+    magState -= canTake;
+    updateSessionUI();
+    magLocal.textContent = magState + ' L';
+    // auto stop if mag empty
+    if(magState<=0){
+      pauseExtraction();
+      statusText.textContent='Magazyn pusty';
+      statusText.classList.remove('green'); statusText.classList.add('red');
+      btnStart.disabled=true;
+      btnStop.disabled=true;
+    }
+  }, 1000);
+}
+
+function pauseExtraction(){
+  if(timer) clearInterval(timer);
+  timer=null;
+  statusText.textContent='Zatrzymane';
+  statusText.classList.remove('green'); statusText.classList.add('red');
+  btnStart.disabled = false;
+  btnStop.disabled = true;
+}
+
+function endShift(){
+  if(sessionLiters<=0){ alert('Brak wydobycia w tej sesji.'); return; }
+  const cur = getCurrent();
+  const windex = workers.findIndex(x=>x.id===cur.id);
+  if(windex===-1){ alert('Profil nieznaleziony.'); return; }
+  const earned = sessionLiters * PRICE_PER_L;
+  const entry = { date: new Date().toISOString(), liters: sessionLiters, earnings: parseFloat(earned.toFixed(2)) };
+  // update worker
+  workers[windex].totalLiters += sessionLiters;
+  workers[windex].totalEarnings += entry.earnings;
+  workers[windex].history = workers[windex].history || [];
+  workers[windex].history.unshift(entry);
+  // keep only last 20
+  if(workers[windex].history.length>20) workers[windex].history.length=20;
+  saveWorkers(workers);
+  // reset session
+  sessionLiters = 0;
+  updateSessionUI();
+  updateProfileUI(workers[windex]);
+  renderHistory(workers[windex]);
+  // update ranking storage (same storage used by ranking page)
+  alert('Zakończono zmianę. Zarobiłeś: ' + entry.earnings.toFixed(2) + ' PLN');
+}
+
+function renderHistory(worker){
+  if(!worker.history || worker.history.length===0){
+    historyList.textContent = 'Brak zapisanych zmian.';
+    return;
+  }
+  const lines = worker.history.slice(0,5).map(h=>{
+    const d = new Date(h.date);
+    return d.toLocaleString() + ' — ' + h.liters + ' L — ' + h.earnings.toFixed(2) + ' PLN';
+  });
+  historyList.innerHTML = lines.map(l=>'<div class="muted small">'+l+'</div>').join('');
+}
+
+function updateMag(){
+  // if we want to persist mag across sessions, can store in localStorage. For now local only per browser.
+  const stored = parseInt(localStorage.getItem('kopalnia_magazyn')||MAX_MAGAZYN);
+  magState = isNaN(stored)?MAX_MAGAZYN:stored;
+  magLocal.textContent = magState + ' L';
+}
+
+// optionally save mag on unload
+window.addEventListener('beforeunload', ()=>{
+  localStorage.setItem('kopalnia_magazyn', magState);
+});
+</script>
+</body>
+</html>

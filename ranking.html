@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Ranking — Mała Kopalnia Przemysłowa</title>
+<style>
+  :root{
+    --bg:#f7f8fb;
+    --card:#ffffff;
+    --accent:#ffb703;
+    --accent-2:#219ebc;
+    --text:#0f1720;
+    --muted:#6b7280;
+  }
+  body{margin:0;font-family:Inter,Arial,sans-serif;background:linear-gradient(180deg,#fbfcfe,#f1f5f9);color:var(--text)}
+  header{background:linear-gradient(90deg,var(--accent),var(--accent-2));color:white;padding:14px 18px;box-shadow:0 6px 20px rgba(16,24,40,0.06)}
+  header h1{margin:0;font-size:18px}
+  .wrap{max-width:980px;margin:22px auto;padding:0 16px}
+  .card{background:var(--card);border-radius:12px;padding:18px;box-shadow:0 8px 26px rgba(16,24,40,0.06)}
+  table{width:100%;border-collapse:collapse;margin-top:8px}
+  th,td{padding:10px 12px;text-align:left;border-bottom:1px solid #eef2f6}
+  th{font-size:13px;color:var(--muted);font-weight:700}
+  td{font-size:15px}
+  .place{font-weight:800;width:60px}
+  .name{font-weight:700}
+  .small{font-size:13px;color:var(--muted)}
+  .empty{color:var(--muted);text-align:center;padding:30px}
+  .btn{display:inline-block;padding:8px 12px;border-radius:8px;border:none;cursor:pointer;background:var(--accent-2);color:white;font-weight:700}
+  footer{max-width:980px;margin:18px auto;text-align:center;color:var(--muted);font-size:13px}
+  @media (max-width:700px){th,td{padding:8px}}
+</style>
+</head>
+<body>
+<header>
+  <h1>🏆 TOP 5 — Mała Kopalnia Przemysłowa</h1>
+</header>
+<div class="wrap">
+  <div style="display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:12px">
+    <div class="small">Ranking sortowany po <strong>zarobku (PLN)</strong>. Dane lokalne (localStorage).</div>
+    <div><a class="btn" href="index.html">← Powrót do panelu</a></div>
+  </div>
+
+  <div class="card">
+    <h2>Ranking pracowników</h2>
+    <div id="tableWrap"></div>
+  </div>
+</div>
+
+<footer>© 2025 Mała Kopalnia Przemysłowa — Ranking</footer>
+
+<script>
+function loadWorkers(){
+  try { return JSON.parse(localStorage.getItem('kopalnia_workers')||'[]'); }
+  catch(e){ return []; }
+}
+
+function render(){
+  const workers = loadWorkers();
+  if(!workers || workers.length===0){
+    document.getElementById('tableWrap').innerHTML = '<div class="empty">Brak zarejestrowanych pracowników.</div>';
+    return;
+  }
+  // sort by totalEarnings desc
+  workers.sort((a,b)=> (b.totalEarnings||0) - (a.totalEarnings||0));
+  const top = workers.slice(0,5);
+  let html = '<table><thead><tr><th>Miejsce</th><th>Pracownik</th><th>Wydobycie (L)</th><th>Zarobek (PLN)</th></tr></thead><tbody>';
+  top.forEach((w,i)=>{
+    html += '<tr>';
+    html += '<td class="place">'+(i+1)+'.</td>';
+    html += '<td class="name">'+escapeHtml(w.name)+'</td>';
+    html += '<td>'+(w.totalLiters||0)+' L</td>';
+    html += '<td>'+( (w.totalEarnings||0).toFixed(2) )+' PLN</td>';
+    html += '</tr>';
+  });
+  html += '</tbody></table>';
+  document.getElementById('tableWrap').innerHTML = html;
+}
+
+function escapeHtml(s){ return String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;'); }
+
+render();
+</script>
+</body>
+</html>
